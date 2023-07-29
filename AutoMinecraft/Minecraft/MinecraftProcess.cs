@@ -3,7 +3,8 @@ using AutoMinecraft.Wrappers;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace AutoMinecraft.Client.Minecraft;
+namespace AutoMinecraft.Minecraft;
+
 public class MinecraftProcess
 {
   private static string JavaProcessName = "javaw";
@@ -12,12 +13,12 @@ public class MinecraftProcess
   public IntPtr Pointer { get; private set; }
   public List<ThreadData> ThreadData { get; private set; }
 
-  private Dictionary<MinecraftDataEnum, PointerPath> PointerPathConfig { get; set; }
+  private Dictionary<MinecraftClientData, PointerPath> PointerPathConfig { get; set; }
 
   public MinecraftProcess()
   {
-    Process = WindowWrapper.GetProcessByName(JavaProcessName);
-    Pointer = WindowWrapper.OpenProcess(WindowWrapper.PROCESS_WM_READ, false, Process.Id);
+    Process = WindowsWrapper.GetProcessByName(JavaProcessName);
+    Pointer = WindowsWrapper.OpenProcess(WindowsWrapper.PROCESS_WM_READ, false, Process.Id);
 
     IntPtr temp = AutoFarmerLLRWrapper.GetAllThreadStartAddresses((uint)Process.Id, out int count);
     ThreadData = ExtractThreadData(temp, count);
@@ -25,12 +26,12 @@ public class MinecraftProcess
     SetupPointerPathConfig();
   }
 
-  public PointerPath GetPtrPathConfig(MinecraftDataEnum nData)
-  { 
-    if(PointerPathConfig.ContainsKey(nData))
+  public PointerPath GetPtrPathConfig(MinecraftClientData nData)
+  {
+    if (PointerPathConfig.ContainsKey(nData))
       return PointerPathConfig[nData];
 
-    throw new NullReferenceException($"Path hasn't been setup for '{Enum.GetName(typeof(MinecraftDataEnum), nData)}'!");
+    throw new NullReferenceException($"Path hasn't been setup for '{Enum.GetName(typeof(MinecraftClientData), nData)}'!");
   }
 
   private List<ThreadData> ExtractThreadData(IntPtr nPointer, int nCount)
@@ -51,16 +52,15 @@ public class MinecraftProcess
 
   private void SetupPointerPathConfig()
   {
-    PointerPathConfig = new Dictionary<MinecraftDataEnum, PointerPath>()
+    PointerPathConfig = new Dictionary<MinecraftClientData, PointerPath>()
     {
-      { MinecraftDataEnum.CLIENT_X_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x15C, 0x360, 0x16C, 0x10 }) },
-      { MinecraftDataEnum.CLIENT_Y_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x16C, 0x248 }) },
-      { MinecraftDataEnum.CLIENT_Z_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x15C, 0x20 }) },
-      { MinecraftDataEnum.CLIENT_X_ORIENTATION, new PointerPath((IntPtr)0x8E5DE820, new int[0]) },
-      { MinecraftDataEnum.CLIENT_Y_ORIENTATION, new PointerPath((IntPtr)0x8E5DE81C, new int[0]) }
+      { MinecraftClientData.CLIENT_X_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x15C, 0x360, 0x16C, 0x10 }) },
+      { MinecraftClientData.CLIENT_Y_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x16C, 0x248 }) },
+      { MinecraftClientData.CLIENT_Z_POSITION, new PointerPath(GetThreadDataIntPtr(1) - 0x958, new int[] { 0x15C, 0x20 }) },
+      { MinecraftClientData.CLIENT_X_ORIENTATION, new PointerPath((IntPtr)0x8F570A58, new int[0]) },
+      //{ MinecraftClientData.CLIENT_Y_ORIENTATION, new PointerPath((IntPtr)0x8E5DE81C, new int[0]) }
     };
   }
-
 
   private IntPtr GetThreadDataIntPtr(int nPosition) => (IntPtr)ThreadData.Where(x => x.Position == nPosition).First().Address;
 }

@@ -1,13 +1,14 @@
-﻿using AutoMinecraft.TypeDef;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace AutoMinecraft.Wrappers;
-public static class WindowWrapper
+internal class WindowsWrapper
 {
   public static readonly int PROCESS_WM_READ = 0x0010;
 
-  public static readonly int MOUSEEVENTF_MOVE = 0x0001;
+  public const int MOUSEEVENTF_MOVE = 0x0001;
+  public const int MOUSEEVENTF_LEFTDOWN = 0x0002;
+  public const int MOUSEEVENTF_LEFTUP = 0x0004;
 
   [DllImport("kernel32.dll")]
   internal static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
